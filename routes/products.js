@@ -1,55 +1,17 @@
 const express = require('express');
-const { getProducts, createProduct, getProductsByUserId, getProductById, deleteProduct } = require('../dao/products');
+const { createNewProduct, getAllProducts, getProductByUser, getProductByProductId, deleteProductById } = require('../controllers/products');
 const { auth } = require('../middlewares/auth');
-const { getUserById } = require('../dao/users');
 const router = express.Router();
 
-router.get('/', auth, async (req, res) => {
-  const userId = req.user.id;
-  const user = await getUserById(userId);
-  if (user.role !== 'admin') {
-    res.status(403).send({ message: 'Only admin can get all products' });
-    return;
-  }
-  const results = await getProducts();
-  res.send({ product: results });
-});
+router.get('/', auth, getAllProducts);
 
-router.post('/', auth, async (req, res) => {
-  const { name, price, category } = req.body;
-  const id = await createProduct(name, price, category, req.user.id);
-  res.send({ product: { id, name, price, category } });
-});
+router.post('/', auth, createNewProduct);
 
 // GET /products/me
-router.get('/me', auth, async (req, res) => {
-  const userId = req.user.id;
-  const products = await getProductsByUserId(userId);
-  res.send({ products });
-});
+router.get('/me', auth, getProductByUser);
 
-router.get('/:id', auth, async (req, res) => {
-  const { id } = req.params;
-  const product = await getProductById(id);
-  if (!product) {
-    res.status(404).send({ message: 'Product not found' });
-    return;
-  }
-  res.send({ product });
-});
+router.get('/:id', auth, getProductByProductId);
 
-router.delete('/:productId', auth, async (req, res) => {
-  const userId = req.user.id;
-  const { productId } = req.params;
-  const product = await getProductById(productId);
-  const user = await getUserById(userId);
-  const canDeleteProduct = product.userId === userId || user.role === 'admin';
-  if (!canDeleteProduct) {
-    res.status(403).send({ message: 'Only product creator can delete' });
-    return;
-  }
-  await deleteProduct(productId);
-  res.send({ message: 'deleted successfully' });
-});
+router.delete('/:productId', auth, deleteProductById);
 
 module.exports = router;

@@ -7,7 +7,7 @@
     "dev": "NODE_ENV=development nodemon server.js | pino-pretty",
     "start": "NODE_ENV=production node server.js",
     "deploy": "heroku container:push web && heroku container:release web",
-    "test": "NODE_ENV=test jest"
+    "test": "NODE_ENV=test jest --detectOpenHandles"
   },
   "keywords": [],
   "author": "",
